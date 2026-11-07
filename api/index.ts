@@ -6,7 +6,7 @@ import {
 import {
   clearCookie, createSession, destroySession, getSessionUser, hashPassword, normalizePhone,
   randomPassword, verifyPassword, easyParentPassword, DUMMY_HASH, type SessionUser,
-} from "./auth.js";
+} from "../lib/auth.js";
 
 class HttpError extends Error {
   constructor(public status: number, message: string) { super(message); }
@@ -74,6 +74,21 @@ function parseCommentGrade(raw: unknown): { score: string; scoreText: string } |
   }
   fail(400, `Giá trị "${raw}" không hợp lệ cho môn nhận xét (chỉ nhận Đ/1/Đạt hoặc CĐ/0/Chưa đạt).`);
 }
+
+// ---------- Kiểm tra tình trạng hệ thống (mở /api/health trên trình duyệt để chẩn đoán) ----------
+
+route("GET", "/api/health", async () => {
+  const out = { databaseUrl: Boolean(process.env.DATABASE_URL), connected: false, tablesReady: false, message: "" };
+  if (!out.databaseUrl) {
+    out.message = "Chưa khai báo biến DATABASE_URL trên Vercel (Settings → Environment Variables), sau đó cần Redeploy.";
+    return json(out);
+  }
+  try { await db.execute(sql`select 1`); out.connected = true; }
+  catch { out.message = "Có DATABASE_URL nhưng không kết nối được tới Neon. Hãy copy lại chuỗi kết nối từ Neon (nút Connect) và dán lại, không có khoảng trắng thừa."; return json(out); }
+  try { await db.select({ id: users.id }).from(users).limit(1); out.tablesReady = true; out.message = "Mọi thứ đều ổn."; }
+  catch { out.message = "Kết nối Neon được nhưng database chưa có bảng dữ liệu: bước tạo bảng (migrate) khi build chưa thành công. Xem Build Logs của lần deploy trên Vercel."; }
+  return json(out);
+});
 
 // ---------- Khởi tạo & đăng nhập ----------
 
@@ -840,7 +855,7 @@ async function handleRequest(req: Request, url: URL, body: any) {
     const m = path.match(match.pattern)!;
     const params: Record<string, string> = {};
     match.keys.forEach((k, i) => (params[k] = m[i + 1]));
-    const user = await getSessionUser(req);
+    const user = path === "/api/health" ? null : await getSessionUser(req);
     // Tài khoản đang dùng mật khẩu do hệ thống cấp phải đổi mật khẩu trước khi dùng bất kỳ chức năng nào khác.
     if (user?.mustChangePassword && !MUST_CHANGE_ALLOWED.includes(path))
       fail(403, "MUST_CHANGE_PASSWORD");
@@ -848,7 +863,13 @@ async function handleRequest(req: Request, url: URL, body: any) {
   } catch (err) {
     if (err instanceof HttpError) return json({ error: err.message }, { status: err.status });
     console.error(err);
-    return json({ error: "Lỗi máy chủ. Vui lòng thử lại." }, { status: 500 });
+    // Gợi ý rõ nguyên nhân cho các lỗi cấu hình thường gặp (không lộ thông tin nhạy cảm).
+    const msg = `${(err as any)?.message ?? ""} ${(err as any)?.cause?.message ?? ""}`;
+    let hint = "Lỗi máy chủ. Vui lòng thử lại.";
+    if (/DATABASE_URL/.test(msg)) hint = "Máy chủ chưa có biến DATABASE_URL. Hãy khai báo trên Vercel rồi Redeploy (mở /api/health để kiểm tra).";
+    else if (/relation .* does not exist/i.test(msg)) hint = "Database chưa có bảng dữ liệu (migrate chưa chạy thành công). Mở /api/health để xem hướng dẫn.";
+    else if (/fetch failed|ENOTFOUND|ECONNREFUSED|password authentication failed|Error connecting to database/i.test(msg)) hint = "Không kết nối được database. Kiểm tra lại DATABASE_URL (mở /api/health).";
+    return json({ error: hint }, { status: 500 });
   }
 }
 

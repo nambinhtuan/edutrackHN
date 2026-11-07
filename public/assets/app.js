@@ -21,7 +21,11 @@ async function api(method, path, body) {
     body: method !== "GET" ? JSON.stringify(body ?? {}) : undefined,
     credentials: "same-origin",
   });
-  const data = await res.json().catch(() => ({}));
+  const raw = await res.text();
+  let data = {};
+  try { data = JSON.parse(raw); } catch { /* không phải JSON */ }
+  if (!res.ok && !data.error && (res.status === 404 || res.status >= 500))
+    data = { error: res.status === 404 ? "Không tìm thấy phần máy chủ (/api). Phần máy chủ có thể chưa được Vercel triển khai thành công." : `Máy chủ gặp sự cố (mã ${res.status}).` };
   if (res.status === 401 && path !== "/api/login" && path !== "/api/change-password") { me = null; render(); }
   if (res.status === 403 && data.error === "MUST_CHANGE_PASSWORD" && me) { me.mustChangePassword = true; render(); throw new Error("Bạn cần đổi mật khẩu trước khi tiếp tục."); }
   if (!res.ok) throw new Error(data.error || `Lỗi ${res.status}`);
@@ -108,7 +112,8 @@ async function boot() {
       if (needsSetup) return renderSetup();
     }
   } catch (e) {
-    app.innerHTML = `<div class="login"><div class="card"><div class="notice err">Không kết nối được máy chủ: ${esc(e.message)}</div></div></div>`;
+    app.innerHTML = `<div class="login"><div class="card"><div class="notice err">Không kết nối được máy chủ: ${esc(e.message)}</div>
+      <p>Mở <a href="/api/health" target="_blank">trang chẩn đoán /api/health</a> để xem nguyên nhân và cách khắc phục.</p></div></div>`;
     return;
   }
   render();

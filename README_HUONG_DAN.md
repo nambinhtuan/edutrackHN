@@ -33,6 +33,6 @@ Mật khẩu hệ thống cấp cho giáo viên và phụ huynh chỉ dùng đư
 * **Cập nhật phiên bản mới:** vào GitHub → *Add file → Upload files* và chép đè file mới; Vercel tự cập nhật, dữ liệu vẫn giữ nguyên.
 * **Quên mật khẩu giáo viên/phụ huynh:** *Giáo viên & phân công* hoặc *Tài khoản phụ huynh* → *Cấp lại MK*.
 * **Quên mật khẩu Quản trị hệ thống:** vào Neon → *SQL Editor* → chạy `DELETE FROM users WHERE is_super_admin = true;` rồi mở lại website để tạo tài khoản mới.
-* **Báo lỗi 500 hoặc “không kết nối được máy chủ”:** kiểm tra biến `DATABASE_URL` trên Vercel (*Settings → Environment Variables*) rồi *Deployments → Redeploy*.
+* **Báo "Không kết nối được máy chủ" hoặc lỗi 500:** mở đường link của bạn rồi thêm `/api/health` vào cuối (ví dụ `https://edutrack-xxxx.vercel.app/api/health`). Trang này cho biết bằng tiếng Việt thiếu `DATABASE_URL`, sai chuỗi kết nối, hay chưa tạo được bảng. Sửa xong vào *Deployments → ⋯ → Redeploy*. Nếu trang đó báo 404, vào Vercel → *Deployments* → bản mới nhất → *Build Logs* và gửi ảnh chụp để được hỗ trợ.
 * **Nút Excel không hoạt động:** gửi ảnh chụp màn hình lỗi để được hỗ trợ.
 * **Sao lưu:** cuối mỗi học kỳ nên xuất Excel sổ điểm từng lớp để lưu.

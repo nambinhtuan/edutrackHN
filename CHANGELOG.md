@@ -1,5 +1,10 @@
 # Nhật ký thay đổi
 
+## v4 – sửa lỗi "Không kết nối được máy chủ"
+- Gỡ `typescript@7` (bản native mới, có thể không tương thích bộ biên dịch của Vercel); Vercel dùng bộ biên dịch riêng.
+- Chuyển `auth.ts` ra thư mục `lib/` (mọi file trong `api/` bị Vercel coi là một hàm máy chủ).
+- Kết nối database tạo khi cần; thêm trang chẩn đoán `/api/health`; thông báo lỗi chỉ rõ nguyên nhân.
+
 ## v2 – rà soát bảo mật & độ tin cậy
 **Bảo mật**
 - Bắt buộc đổi mật khẩu cho tài khoản dùng mật khẩu do hệ thống cấp (chặn ở cả máy chủ lẫn giao diện).
