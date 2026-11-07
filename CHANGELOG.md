@@ -1,5 +1,7 @@
 # Nhật ký thay đổi
 
+## v6 – health gọi thẳng Neon (directCheck)
+
 ## v5 – chẩn đoán kết nối Neon
 - Tự làm sạch chuỗi DATABASE_URL (bỏ psql, dấu nháy, channel_binding); trang /api/health hiện lỗi chi tiết và kiểm tra dạng chuỗi.
 

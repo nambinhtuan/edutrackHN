@@ -3,6 +3,7 @@ import { db } from "../db/index.js";
 import {
   classes, grades, parentStudents, sessions, students, subjects, teacherAssignments, users,
 } from "../db/schema.js";
+import { cleanDatabaseUrl } from "../db/index.js";
 import {
   clearCookie, createSession, destroySession, getSessionUser, hashPassword, normalizePhone,
   randomPassword, verifyPassword, easyParentPassword, DUMMY_HASH, type SessionUser,
@@ -79,7 +80,7 @@ function parseCommentGrade(raw: unknown): { score: string; scoreText: string } |
 
 route("GET", "/api/health", async () => {
   const raw = process.env.DATABASE_URL || "";
-  const out = { databaseUrl: Boolean(raw.trim()), urlFormat: "", connected: false, tablesReady: false, detail: "", message: "" };
+  const out = { databaseUrl: Boolean(raw.trim()), urlFormat: "", connected: false, tablesReady: false, detail: "", directCheck: "", message: "" };
   // Không bao giờ in chuỗi kết nối (có mật khẩu); chỉ mô tả dạng của nó.
   const clean = (e: any) => `${e?.message ?? e} ${e?.cause?.message ?? ""}`.replace(/postgres(ql)?:\/\/\S+/gi, "[chuỗi kết nối]").slice(0, 300);
   if (!out.databaseUrl) {
@@ -94,6 +95,17 @@ route("GET", "/api/health", async () => {
   try { await db.execute(sql`select 1`); out.connected = true; }
   catch (e) {
     out.detail = clean(e);
+    // Thử gọi thẳng Neon (không qua thư viện) để phân biệt: sai chuỗi/mật khẩu hay lỗi thư viện.
+    try {
+      const u = new URL(cleanDatabaseUrl(raw));
+      const r = await fetch(`https://${u.hostname}/sql`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Neon-Connection-String": cleanDatabaseUrl(raw) },
+        body: JSON.stringify({ query: "select 1 as ok", params: [] }),
+      });
+      const txt = (await r.text()).replace(/postgres(ql)?:\/\/\S+/gi, "[chuỗi kết nối]").slice(0, 200);
+      out.directCheck = `HTTP ${r.status}: ${txt}`;
+    } catch (e2) { out.directCheck = `Không gọi được tới Neon: ${clean(e2)}`; }
     out.message = "Có DATABASE_URL nhưng không kết nối được tới Neon. Xem mục urlFormat và detail để biết nguyên nhân, rồi dán lại chuỗi từ nút Connect của Neon.";
     return json(out);
   }
