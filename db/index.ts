@@ -17,7 +17,8 @@ function getDb(): NeonHttpDatabase<typeof schema> {
   if (!instance) {
     const url = cleanDatabaseUrl(process.env.DATABASE_URL || "");
     if (!url) throw new Error("Thiếu biến môi trường DATABASE_URL");
-    instance = drizzle(neon(url), { schema });
+    // drizzle 1.0 nhận tham số dạng đối tượng { client, schema } (cách gọi cũ drizzle(client, {schema}) không còn đúng).
+    instance = drizzle({ client: neon(url), schema });
   }
   return instance;
 }

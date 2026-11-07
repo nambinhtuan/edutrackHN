@@ -1,5 +1,7 @@
 # Nhật ký thay đổi
 
+## v7 – sửa cách khởi tạo drizzle 1.0 (nguyên nhân gốc của lỗi kết nối)
+
 ## v6 – health gọi thẳng Neon (directCheck)
 
 ## v5 – chẩn đoán kết nối Neon
