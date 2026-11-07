@@ -78,15 +78,27 @@ function parseCommentGrade(raw: unknown): { score: string; scoreText: string } |
 // ---------- Kiểm tra tình trạng hệ thống (mở /api/health trên trình duyệt để chẩn đoán) ----------
 
 route("GET", "/api/health", async () => {
-  const out = { databaseUrl: Boolean(process.env.DATABASE_URL), connected: false, tablesReady: false, message: "" };
+  const raw = process.env.DATABASE_URL || "";
+  const out = { databaseUrl: Boolean(raw.trim()), urlFormat: "", connected: false, tablesReady: false, detail: "", message: "" };
+  // Không bao giờ in chuỗi kết nối (có mật khẩu); chỉ mô tả dạng của nó.
+  const clean = (e: any) => `${e?.message ?? e} ${e?.cause?.message ?? ""}`.replace(/postgres(ql)?:\/\/\S+/gi, "[chuỗi kết nối]").slice(0, 300);
   if (!out.databaseUrl) {
     out.message = "Chưa khai báo biến DATABASE_URL trên Vercel (Settings → Environment Variables), sau đó cần Redeploy.";
     return json(out);
   }
+  const t = raw.trim();
+  out.urlFormat = /^psql\b/i.test(t) ? "BẮT ĐẦU BẰNG 'psql' (sai: chỉ lấy phần postgresql://...)"
+    : /^['"]/.test(t) ? "CÓ DẤU NHÁY ở đầu (sai: xoá dấu nháy)"
+    : !/^postgres(ql)?:\/\//i.test(t) ? "KHÔNG bắt đầu bằng postgresql:// (sai chuỗi)"
+    : /\s/.test(t) ? "có khoảng trắng bên trong (sai)" : "đúng dạng postgresql://...";
   try { await db.execute(sql`select 1`); out.connected = true; }
-  catch { out.message = "Có DATABASE_URL nhưng không kết nối được tới Neon. Hãy copy lại chuỗi kết nối từ Neon (nút Connect) và dán lại, không có khoảng trắng thừa."; return json(out); }
+  catch (e) {
+    out.detail = clean(e);
+    out.message = "Có DATABASE_URL nhưng không kết nối được tới Neon. Xem mục urlFormat và detail để biết nguyên nhân, rồi dán lại chuỗi từ nút Connect của Neon.";
+    return json(out);
+  }
   try { await db.select({ id: users.id }).from(users).limit(1); out.tablesReady = true; out.message = "Mọi thứ đều ổn."; }
-  catch { out.message = "Kết nối Neon được nhưng database chưa có bảng dữ liệu: bước tạo bảng (migrate) khi build chưa thành công. Xem Build Logs của lần deploy trên Vercel."; }
+  catch (e) { out.detail = clean(e); out.message = "Kết nối Neon được nhưng database chưa có bảng dữ liệu: bước tạo bảng (migrate) khi build chưa thành công. Xem Build Logs của lần deploy trên Vercel."; }
   return json(out);
 });
 

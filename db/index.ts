@@ -4,10 +4,18 @@ import * as schema from "./schema.js";
 
 // Kết nối được tạo khi có yêu cầu đầu tiên (không phải lúc nạp file) để nếu thiếu DATABASE_URL
 // máy chủ vẫn chạy và báo lỗi dễ hiểu thay vì "sập" không rõ nguyên nhân.
+// Làm sạch chuỗi kết nối người dùng dán vào: bỏ chữ "psql", dấu nháy, khoảng trắng, tham số channel_binding.
+function cleanDatabaseUrl(raw: string): string {
+  const m = raw.match(/postgres(?:ql)?:\/\/[^\s'"]+/i);
+  let u = m ? m[0] : raw.trim();
+  u = u.replace(/([?&])channel_binding=[^&]*&?/i, "$1").replace(/[?&]$/, "");
+  return u;
+}
+
 let instance: NeonHttpDatabase<typeof schema> | null = null;
 function getDb(): NeonHttpDatabase<typeof schema> {
   if (!instance) {
-    const url = (process.env.DATABASE_URL || "").trim();
+    const url = cleanDatabaseUrl(process.env.DATABASE_URL || "");
     if (!url) throw new Error("Thiếu biến môi trường DATABASE_URL");
     instance = drizzle(neon(url), { schema });
   }

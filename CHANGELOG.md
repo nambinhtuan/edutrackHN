@@ -1,5 +1,8 @@
 # Nhật ký thay đổi
 
+## v5 – chẩn đoán kết nối Neon
+- Tự làm sạch chuỗi DATABASE_URL (bỏ psql, dấu nháy, channel_binding); trang /api/health hiện lỗi chi tiết và kiểm tra dạng chuỗi.
+
 ## v4 – sửa lỗi "Không kết nối được máy chủ"
 - Gỡ `typescript@7` (bản native mới, có thể không tương thích bộ biên dịch của Vercel); Vercel dùng bộ biên dịch riêng.
 - Chuyển `auth.ts` ra thư mục `lib/` (mọi file trong `api/` bị Vercel coi là một hàm máy chủ).
