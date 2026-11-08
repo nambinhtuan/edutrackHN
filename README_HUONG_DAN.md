@@ -29,6 +29,11 @@ Mở đường link ngay sau khi deploy xong. **Người đầu tiên vào là Q
 
 Mật khẩu hệ thống cấp cho giáo viên và phụ huynh chỉ dùng được một lần: họ sẽ được yêu cầu đặt mật khẩu mới ngay khi đăng nhập lần đầu.
 
+## Nhập điểm nhanh và nhập điểm bằng Excel (dành cho giáo viên)
+**Gõ nhanh, không cần dấu phẩy:** trong *Sổ điểm*, gõ `85` → hiển thị `8,5`; gõ `925` → `9,25`; gõ `7` → `7`; gõ `10` (hoặc `100`) → `10`. Nhấn Enter để xuống ô dưới. Vẫn có thể gõ đầy đủ `8,5` hoặc `9.25`. Quy tắc: 1 chữ số = điểm nguyên; 2 chữ số = một chữ số thập phân; 3 chữ số = hai chữ số thập phân (riêng `10`, `100` là 10 điểm). Muốn nhập 1,0 hãy gõ `1`.
+
+**Nhập bằng Excel:** chọn lớp, môn, học kỳ → bấm **Tải file mẫu** (có sẵn danh sách học sinh) → điền điểm vào các cột TX1, TX2…, GK, CK (ô Excel ghi `85` cũng được hiểu là 8,5) → bấm **Nhập từ Excel** và chọn file. Hệ thống điền vào bảng điểm và báo ô nào không hợp lệ hoặc học sinh nào không tìm thấy; giáo viên kiểm tra rồi bấm **Lưu điểm**. Ô để trống được bỏ qua (không xoá điểm đã có). Môn nhận xét: điền `Đ` hoặc `CĐ` (hoặc `1`/`0`).
+
 ## Khi cần
 * **Cập nhật phiên bản mới:** vào GitHub → *Add file → Upload files* và chép đè file mới; Vercel tự cập nhật, dữ liệu vẫn giữ nguyên.
 * **Quên mật khẩu giáo viên/phụ huynh:** *Giáo viên & phân công* hoặc *Tài khoản phụ huynh* → *Cấp lại MK*.

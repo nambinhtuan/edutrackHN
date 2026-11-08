@@ -1,5 +1,9 @@
 # Nhật ký thay đổi
 
+## v8 – sổ điểm
+- Nhập nhanh không cần dấu phẩy (85 → 8,5; 925 → 9,25; 10 → 10), tự định dạng khi rời ô/Enter, áp dụng cả khi dán từ Excel.
+- Sổ điểm: nút "Tải file mẫu" và "Nhập từ Excel" (nhận diện học sinh theo Mã HS hoặc Họ tên, bỏ qua ô trống, báo lỗi từng ô, giáo viên kiểm tra rồi mới lưu).
+
 ## v7 – sửa cách khởi tạo drizzle 1.0 (nguyên nhân gốc của lỗi kết nối)
 
 ## v6 – health gọi thẳng Neon (directCheck)
